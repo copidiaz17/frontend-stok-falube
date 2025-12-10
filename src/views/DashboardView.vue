@@ -4,7 +4,12 @@
     <header class="header header-principal">
       
       <img src="/falube.jpg" alt="logo" class="logo" />
-      
+      <div v-if="sidebarOpen && window.innerWidth < 600" class="mobile-user-menu">
+  <p>{{ userName }}</p>
+  <button class="btn-logout" @click="logout">
+    <i class="fas fa-arrow-right-from-bracket"></i> Logout
+  </button>
+</div>
       <div class="header-main-area">
         <h1 class="main-dashboard-title">SISTEMA DE CONTROL DE STOCK</h1>
           
