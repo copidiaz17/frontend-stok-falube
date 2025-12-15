@@ -7,80 +7,89 @@
         <img src="/falube.jpg" alt="Logo" class="logo" />
 
         <div class="input-group">
-          <input 
-            v-model="email" 
-            type="email" 
-            placeholder="Email" 
+          <input
+            v-model="email"
+            type="email"
+            placeholder="Email"
             required
           />
         </div>
 
         <div class="input-group">
-          <input 
-            v-model="password" 
-            type="password" 
-            placeholder="Contraseña" 
+          <input
+            v-model="password"
+            type="password"
+            placeholder="Contraseña"
             required
           />
         </div>
 
-        <button type="submit" class="btn-submit">Ingresar</button>
+        <button type="submit" class="btn-submit">
+          Ingresar
+        </button>
 
         <p v-if="error" class="error">{{ error }}</p>
-        
-        </form>
+      </form>
     </div>
   </div>
 </template>
 
-
-
 <script>
 import api from "../config/axios.Config.js";
+import { useAuthStore } from "../stores/authStore";
 import '../assets/css/login.css';
 
 export default {
   name: "LoginView",
+
   data() {
     return {
       email: "",
       password: "",
-      error: null
+      error: null,
+      loading: false,
     };
   },
+
   methods: {
     async login() {
       this.error = null;
-      try {
+      this.loading = true;
 
-        console.log('DEBUG EXECUTION: Enviando credenciales...');
+      try {
+        console.log("DEBUG EXECUTION: Enviando credenciales...");
+
         const res = await api.post("/auth/login", {
           email: this.email,
-          password: this.password
+          password: this.password,
         });
 
-        // 1. Guardar el token
-        localStorage.setItem("token", res.data.token);
-        
-        // 🟢 CORRECCIÓN CLAVE: Forzar recarga de página al path /dashboard
-        // Esto reinicia la aplicación, permitiendo que Pinia lea el token de localStorage de forma síncrona.
-        window.location.replace("/dashboard"); 
+        const token = res.data.token;
+
+        // 1️⃣ Guardar token
+        localStorage.setItem("token", token);
+
+        // 2️⃣ Cargar usuario en Pinia INMEDIATAMENTE
+        const authStore = useAuthStore();
+        authStore.loadUserFromToken(token);
+
+        // 3️⃣ Navegar al dashboard (sin reload)
+        this.$router.push({ name: "Dashboard" });
 
       } catch (err) {
-        // Maneja el error que viene del backend (ej: Contraseña incorrecta)
-        this.error = err.response?.data?.message || "Error al iniciar sesión";
+        this.error =
+          err.response?.data?.message || "Error al iniciar sesión";
+      } finally {
+        this.loading = false;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
 <style scoped>
-/* estilos existentes */
 img {
   max-width: 200px;
   height: auto;
 }
 </style>
-
-
